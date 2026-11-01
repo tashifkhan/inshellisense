@@ -19,6 +19,7 @@ import log from "../utils/log.js";
 import { specResourcesPath } from "../utils/constants.js";
 import { endTiming, startTiming } from "../utils/performance.js";
 import { clearImplicitGeneratorState } from "./generatorCache.js";
+import { refreshUvSpecs } from "./generatedUv.js";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- recursive type, setting as any
 const specSet: any = {};
@@ -64,9 +65,8 @@ const loadSpec = async (cmd: CommandToken[], signal?: AbortSignal): Promise<Fig.
   }
   if (specSet[rootToken.token]) {
     signal?.throwIfAborted();
-    const specPath = specSet[rootToken.token];
-    const importPath = path.isAbsolute(specPath) ? pathToFileURL(specPath).href : specPath;
-    const spec = (await import(importPath)).default;
+    const source = specSet[rootToken.token];
+    const spec = typeof source === "string" ? (await import(path.isAbsolute(source) ? pathToFileURL(source).href : source)).default : source;
     loadedSpecs[rootToken.token] = spec;
     return spec;
   }
@@ -86,6 +86,19 @@ const lazyLoadSpecLocation = async (location: Fig.SpecLocation, signal?: AbortSi
 };
 
 export const loadLocalSpecsSet = async () => {
+  if (getConfig().specs.generate?.includes("uv")) {
+    try {
+      const { cache, warning } = await refreshUvSpecs();
+      Object.assign(specSet, cache.specs);
+      specNames = Object.keys(specSet)
+        .filter((name) => !name.startsWith("@") && name !== "-")
+        .sort();
+      if (warning) log.debug({ msg: "Using cached uv completions", warning });
+    } catch (error) {
+      log.debug({ msg: "Could not generate uv completions; continuing with existing specs", error: String(error) });
+    }
+  }
+  // Explicit local definitions override generated and bundled definitions.
   const specsPath = getConfig().specs.path;
   await Promise.allSettled(
     specsPath.map((specPath) => {

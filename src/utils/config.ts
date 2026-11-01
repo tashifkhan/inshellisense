@@ -30,6 +30,7 @@ type Config = {
   };
   specs: {
     path: string[];
+    generate?: "uv"[];
   };
   useAliases: boolean;
   useNerdFont: boolean;
@@ -74,6 +75,7 @@ const configSchema = {
       nullable: true,
       properties: {
         path: specPathsSchema,
+        generate: { type: "array", items: { type: "string", enum: ["uv"] }, nullable: true },
       },
     },
     useAliases: {
@@ -152,6 +154,7 @@ export const loadConfig = async (program: Command) => {
         },
         specs: {
           path: [...(config?.specs?.path ?? [])],
+          generate: config?.specs?.generate ?? [],
         },
         useAliases: config.useAliases ?? false,
         useNerdFont: config?.useNerdFont ?? false,
@@ -161,7 +164,10 @@ export const loadConfig = async (program: Command) => {
       };
     }
   }
-  globalConfig.specs = { path: [path.join(os.homedir(), ".fig", "autocomplete", "build"), ...(globalConfig.specs?.path ?? [])] };
+  globalConfig.specs = {
+    path: [path.join(os.homedir(), ".fig", "autocomplete", "build"), ...(globalConfig.specs?.path ?? [])],
+    generate: globalConfig.specs.generate ?? [],
+  };
 };
 
 export const deleteCacheFolder = (): void => {

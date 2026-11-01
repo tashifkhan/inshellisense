@@ -103,6 +103,27 @@ All configuration is done through a [toml](https://toml.io/) file. You can creat
 
 On new Unix-like installations, generated resources are stored under `$XDG_DATA_HOME/inshellisense`. When `XDG_DATA_HOME` is unset, empty, or non-absolute, it defaults to `~/.local/share` as defined by the XDG specification. Existing installations continue using `~/.inshellisense` when that directory is present so current shell plugins keep working; Windows also keeps using that location. Running `is reinit` migrates legacy resources to the XDG data directory.
 
+### Completions that follow the installed uv version
+
+To generate `uv` and `uvx` completions from your installed `uv`, add this to your configuration:
+
+```toml
+[specs]
+generate = ["uv"]
+```
+
+At session startup, inshellisense checks the executable path and `uv --version`. It reuses cached definitions when both match and regenerates them when either changes. Generation runs only `uv --help` and subcommand `--help` calls. It does not install packages, synchronize projects, or fetch definitions from the network.
+
+The generated definitions cover commands, flags, documented choice values, and file or directory arguments. They do not provide package searches from PyPI or discover project scripts. `uv` must be a native executable on `PATH`; Windows `.cmd` shims are not supported. Definitions in `specs.path`, including the default `~/.fig/autocomplete/build` directory, take precedence. If generation fails, inshellisense keeps the previous cache and continues starting the shell.
+
+To refresh immediately, run:
+
+```sh
+is specs refresh uv
+```
+
+This command refreshes the cache without enabling automatic generation. The configuration above enables generation in future sessions. Remove `uv` from `specs.generate` to turn it off. Other completion definitions continue to come from the installed inshellisense package.
+
 ### Keybindings
 
 You can customize the keybindings for inshellisense by adding a `bindings` section to your config file. The following is the default configuration for the [keybindings](#keybindings):
