@@ -114,7 +114,11 @@ generate = ["uv"]
 
 At session startup, inshellisense checks the executable path and `uv --version`. It reuses cached definitions when both match and regenerates them when either changes. Generation runs only `uv --help` and subcommand `--help` calls. It does not install packages, synchronize projects, or fetch definitions from the network.
 
-The generated definitions cover commands, flags, documented choice values, and file or directory arguments. They do not provide package searches from PyPI or discover project scripts. `uv` must be a native executable on `PATH`; Windows `.cmd` shims are not supported. Definitions in `specs.path`, including the default `~/.fig/autocomplete/build` directory, take precedence. If generation fails, inshellisense keeps the previous cache and continues starting the shell.
+The generated definitions cover commands, flags, documented choice values, and file or directory arguments. At `uv run `, inshellisense also suggests entry points from `[project.scripts]` in the nearest `pyproject.toml`, ahead of flags. It reads the file again as you type, including from project subdirectories, so edits and project changes take effect without restarting. `--project` and `--directory` redirect discovery; `--no-project`, script mode, and module mode disable project entry points. Discovery reads TOML without importing project code or running scripts. It does not inspect workspace members, installed dependency entry points, or provide package searches from PyPI.
+
+Python files and executable files in the current directory also rank above other files and flags. Filesystem navigation remains available for scripts in subdirectories. Directory listings are cached for up to one second and invalidated earlier when the directory changes. In Bash, zsh, Fish, and PowerShell, adjacent directories containing `pyproject.toml` appear as project choices. Accepting one inserts `--project <directory>` and offers that project's entry points. Paths containing apostrophes use ordinary `--project` directory completion instead, as do Fish paths containing backslashes. Completion never executes these files.
+
+`uv` must be a native executable on `PATH`; Windows `.cmd` shims are not supported. Definitions in `specs.path`, including the default `~/.fig/autocomplete/build` directory, take precedence. If generation fails, inshellisense keeps the previous cache and continues starting the shell.
 
 To refresh immediately, run:
 

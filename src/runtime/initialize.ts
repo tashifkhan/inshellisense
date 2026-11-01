@@ -11,7 +11,7 @@ export const initializeRuntime = (shell: Shell): Promise<RuntimeModule> => {
   runtimeInitialization ??= (async () => {
     const zshSetup = shell == Shell.Zsh ? setupZshDotfiles() : Promise.resolve();
     const [runtime, alias] = await Promise.all([import("./runtime.js"), import("./alias.js")]);
-    await Promise.all([runtime.loadLocalSpecsSet(), alias.loadAliases(shell), zshSetup]);
+    await Promise.all([runtime.loadLocalSpecsSet(shell), alias.loadAliases(shell), zshSetup]);
     return runtime;
   })();
   return runtimeInitialization;

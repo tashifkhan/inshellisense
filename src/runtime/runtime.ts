@@ -20,6 +20,7 @@ import { specResourcesPath } from "../utils/constants.js";
 import { endTiming, startTiming } from "../utils/performance.js";
 import { clearImplicitGeneratorState } from "./generatorCache.js";
 import { refreshUvSpecs } from "./generatedUv.js";
+import { withUvProjectScripts } from "./uvProject.js";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- recursive type, setting as any
 const specSet: any = {};
@@ -85,11 +86,11 @@ const lazyLoadSpecLocation = async (location: Fig.SpecLocation, signal?: AbortSi
   return; //TODO: implement spec location loading
 };
 
-export const loadLocalSpecsSet = async () => {
+export const loadLocalSpecsSet = async (shell = Shell.Bash) => {
   if (getConfig().specs.generate?.includes("uv")) {
     try {
       const { cache, warning } = await refreshUvSpecs();
-      Object.assign(specSet, cache.specs);
+      Object.assign(specSet, cache.specs, cache.specs.uv ? { uv: withUvProjectScripts(cache.specs.uv, shell) } : {});
       specNames = Object.keys(specSet)
         .filter((name) => !name.startsWith("@") && name !== "-")
         .sort();

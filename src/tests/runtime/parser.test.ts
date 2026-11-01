@@ -63,6 +63,14 @@ const testData = [
 ];
 
 describe(`parseCommand`, () => {
+  test("keeps equals signs in positional option values", () => {
+    expect(parseCommand("uv run -C backend=value ", Shell.Zsh).map(({ token, isOption }) => ({ token, isOption }))).toEqual([
+      { token: "uv", isOption: false },
+      { token: "run", isOption: false },
+      { token: "-C", isOption: true },
+      { token: "backend=value", isOption: false },
+    ]);
+  });
   testData.forEach(({ command, shell }) => {
     test(`[${shell ?? "bash"}] ${command}`, () => {
       expect(parseCommand(command, shell ?? Shell.Bash)).toMatchSnapshot();

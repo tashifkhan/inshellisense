@@ -102,7 +102,7 @@ const lex = (command: string, shell: Shell): CommandToken[] => {
         isQuoted: true,
         isQuoteContinued: true,
       });
-    } else if ((readingFlag && spaceRegex.test(char)) || char === "=") {
+    } else if (readingFlag && (spaceRegex.test(char) || char === "=")) {
       readingFlag = false;
       tokens.push({
         token: command.slice(readingIdx, idx),
